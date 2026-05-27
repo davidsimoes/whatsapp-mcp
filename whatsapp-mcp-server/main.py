@@ -1,8 +1,51 @@
+import os
 import signal
 import sys
+import threading
+import time
+import traceback
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+
+# Parent-death watchdog (see ~/.claude/knowledge/mcp-orphan-prevention.md).
+# Polls the original parent PID every 5s; SIGTERMs self if parent disappears.
+# Prevents whatsapp-mcp from orphaning to launchd when a Claude session crashes.
+_ORIG_PARENT_PID = os.getppid()
+_WATCHDOG_LOG = os.path.expanduser("~/.claude/cache/whatsapp-mcp-watchdog.log")
+
+
+def _watchdog_log(msg: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(_WATCHDOG_LOG), exist_ok=True)
+        with open(_WATCHDOG_LOG, "a") as f:
+            f.write(
+                f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} "
+                f"pid={os.getpid()} parent={_ORIG_PARENT_PID} {msg}\n"
+            )
+    except Exception:
+        pass  # logging must never crash the watchdog
+
+
+def _watch_parent_exit() -> None:
+    _watchdog_log("watchdog started")
+    while True:
+        try:
+            os.kill(_ORIG_PARENT_PID, 0)
+        except ProcessLookupError:
+            _watchdog_log("parent gone — SIGTERMing self")
+            os.kill(os.getpid(), signal.SIGTERM)
+            return
+        except PermissionError:
+            # PID exists but is owned by another uid — treat as alive, keep polling.
+            pass
+        except Exception:
+            _watchdog_log(f"unexpected error:\n{traceback.format_exc()}")
+            # Continue polling; never silently die.
+        time.sleep(5)
+
+
+threading.Thread(target=_watch_parent_exit, daemon=True).start()
 
 from whatsapp import (
     download_media as whatsapp_download_media,
