@@ -232,7 +232,7 @@ Copy `.env.example` to `.env` and configure as needed:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `WHATSAPP_BRIDGE_PORT` | `8080` | Port for Go bridge REST API |
-| `WEBHOOK_URL` | `http://localhost:8769/whatsapp/webhook` | Webhook for incoming messages |
+| `WEBHOOK_URL` | `http://localhost:8769/whatsapp/webhook` | Webhook for incoming messages. Leaving it unset does **not** disable the feature — the default above is compiled in and used, so the bridge will POST to it whether or not anything is listening. Disabling requires a code change (`return` on empty), not configuration. |
 | `FORWARD_SELF` | `false` | Forward messages sent by self |
 | `WHATSAPP_DB_PATH` | `../whatsapp-bridge/store/messages.db` | Path to SQLite database |
 | `WHATSAPP_API_URL` | `http://localhost:8080/api` | Go bridge REST API URL |

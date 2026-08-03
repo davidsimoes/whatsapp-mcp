@@ -99,7 +99,7 @@ A failing blocking job is a hard block — fix it or explain in the PR why it's 
 | `WHATSAPP_DB_PATH` | `../whatsapp-bridge/store/messages.db` | SQLite path used by the MCP server |
 | `WHATSAPP_API_URL` | `http://localhost:8080/api` | Bridge REST endpoint |
 | `WHATSAPP_BRIDGE_PORT` | `8080` | Port the bridge binds to |
-| `WEBHOOK_URL` | `http://localhost:8769/whatsapp/webhook` | Outgoing webhook for incoming messages (empty = disabled) |
+| `WEBHOOK_URL` | `http://localhost:8769/whatsapp/webhook` | Outgoing webhook for incoming messages. ⚠️ **Empty does NOT disable it** — `webhook.go` falls back to the hardcoded default above, so an unset var means the bridge POSTs every inbound message to `localhost:8769` forever. There is no way to turn the webhook off by configuration. Verified 2026-08-03 on the box: 10,466 `connection refused` and **zero** successes since 7 April (86 `501`s on 3–5 June, from a listener that never implemented the route). To actually disable it, `webhook.go` needs `if webhookURL == "" { return }` — a rebuild, since the default is compiled in. |
 | `FORWARD_SELF` | `false` | Whether self-sent messages are forwarded |
 
 When adding a new env var: document it here, in `README.md`, and in `.env.example`.
