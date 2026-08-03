@@ -1,8 +1,11 @@
 # Databases
 *.db
 
-# Logs
-*.log
+# Logs — bridge.log is PLAINTEXT MESSAGE HISTORY, and this repo has a public remote.
+# The trailing * is load-bearing: logrotate writes `bridge.log-20260803-113854.gz`, which
+# `*.log` does NOT match. Found 2026-08-03 the moment rotation was first enabled — a 12 MB
+# gzip of personal chats sat untracked-but-committable until this line existed.
+*.log*
 
 # Config
 claude_desktop_config.json
