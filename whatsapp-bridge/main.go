@@ -1307,8 +1307,15 @@ func startRESTServer(client *whatsmeow.Client, messageStore *MessageStore, port 
 		}
 	})
 
-	// Start the server with proper timeouts
-	serverAddr := fmt.Sprintf(":%d", port)
+	// Start the server with proper timeouts.
+	// Bind loopback-only: the API has no auth of its own, so the firewall must never be its
+	// only protection (David approved 2026-08-04; a tailnet/ufw lapse stays harmless). Set
+	// WHATSAPP_BRIDGE_HOST if a remote consumer ever genuinely needs wider binding.
+	host := os.Getenv("WHATSAPP_BRIDGE_HOST")
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	serverAddr := fmt.Sprintf("%s:%d", host, port)
 	fmt.Printf("Starting REST API server on %s...\n", serverAddr)
 
 	// Create server with timeouts for stability
