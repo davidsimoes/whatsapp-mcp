@@ -461,3 +461,15 @@ func TestMigrateLegacyLIDChatsToPhoneJIDs_AggregatesByPhoneJIDDeterministically(
 		t.Fatalf("expected merged last_message_time to be max source value, got %s", lastMessage)
 	}
 }
+
+// whatsmeow builds the download URL as host + directPath + "&hash=...", so the direct path must
+// keep its signed query (oh/oe/_nc_sid). Stripping it made every media download fail with 403
+// (box, Aug-Nov 2026).
+func TestExtractDirectPathKeepsSignedQuery(t *testing.T) {
+	url := "https://mmg.whatsapp.net/v/t62.7118-24/123_456_n.enc?ccb=11-4&oh=01_SIG&oe=6A0B1C2D&_nc_sid=5e03e0&mms3=true"
+	got := extractDirectPathFromURL(url)
+	want := "/v/t62.7118-24/123_456_n.enc?ccb=11-4&oh=01_SIG&oe=6A0B1C2D&_nc_sid=5e03e0"
+	if got != want {
+		t.Fatalf("extractDirectPathFromURL = %q, want %q", got, want)
+	}
+}

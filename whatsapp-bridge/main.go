@@ -1096,10 +1096,11 @@ func extractDirectPathFromURL(url string) string {
 
 	pathPart := parts[1]
 
-	// Remove query parameters
-	pathPart = strings.SplitN(pathPart, "?", 2)[0]
+	// Keep the signed query (oh/oe/_nc_sid): whatsmeow appends "&hash=..." straight to the
+	// direct path, so without it every download is refused with 403. Drop only "mms3=true",
+	// which the URL carries but a message's direct path does not.
+	pathPart = strings.Replace(pathPart, "&mms3=true", "", 1)
 
-	// Create proper direct path format
 	return "/" + pathPart
 }
 
